@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a1a2e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TOZ CRAFT">
+<title>TOZ CRAFT STORAGE SYSTEM</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #1a1a2e;
+  --card: #0d1b2a;
+  --accent: #e94560;
+  --green: #4ecca3;
+  --yellow: #f5a623;
+  --blue: #4a9eff;
+  --purple: #b06bff;
+  --text: #c8d6e5;
+  --text-dim: #6b7f92;
+  --border: #1e3a5f;
+  --slot-empty: #0a1520;
+  --slot-overflow: #0a1e30;
+  --slot-random: #1a0a2e;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'VT323', monospace; font-size: 18px; overflow-x: hidden; }
+
+/* Pixel grid background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(78,204,163,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(78,204,163,0.03) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+#app { position: relative; z-index: 1; max-width: 600px; margin: 0 auto; padding-bottom: 80px; }
+
+/* HEADER */
+.header {
+  background: linear-gradient(180deg, #0d1b2a 0%, rgba(13,27,42,0.95) 100%);
+  border-bottom: 2px solid var(--accent);
+  padding: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 4px 20px rgba(233,69,96,0.2);
+}
+.header-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 13px;
+  color: var(--accent);
+  text-shadow: 0 0 10px rgba(233,69,96,0.5);
+  letter-spacing: 1px;
+  line-height: 1.6;
+}
+.header-sub {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  color: var(--green);
+  margin-top: 4px;
+  letter-spacing: 2px;
+}
+.header-pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.pill {
+  font-family: 'VT323', monospace;
+  font-size: 15px;
+  padding: 3px 10px;
+  border-radius: 2px;
+  border: 1px solid;
+  line-height: 1.2;
+}
+.pill-green { color: var(--green); border-color: var(--green); background: rgba(78,204,163,0.1); }
+.pill-accent { color: var(--accent); border-color: var(--accent); background: rgba(233,69,96,0.1); }
+.pill-blue { color: var(--blue); border-color: var(--blue); background: rgba(74,158,255,0.1); }
+.pill-yellow { color: var(--yellow); border-color: var(--yellow); background: rgba(245,166,35,0.1); }
+
+/* TOOLBAR */
+.toolbar {
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 12px;
+  position: sticky;
+  top: 110px;
+  z-index: 99;
+}
+.search-input {
+  width: 100%;
+  background: var(--slot-empty);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'VT323', monospace;
+  font-size: 18px;
+  padding: 8px 12px;
+  outline: none;
+  border-radius: 2px;
+  margin-bottom: 8px;
+}
+.search-input::placeholder { color: var(--text-dim); }
+.search-input:focus { border-color: var(--green); }
+.filter-row {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+.filter-row::-webkit-scrollbar { display: none; }
+.filter-btn {
+  font-family: 'VT323', monospace;
+  font-size: 15px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  white-space: nowrap;
+  border-radius: 2px;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.filter-btn.active, .filter-btn:active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.toolbar-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.btn {
+  font-family: 'VT323', monospace;
+  font-size: 16px;
+  padding: 6px 14px;
+  border: 1px solid;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.btn-green { background: rgba(78,204,163,0.15); color: var(--green); border-color: var(--green); }
+.btn-green:active { background: var(--green); color: var(--bg); }
+.btn-blue { background: rgba(74,158,255,0.15); color: var(--blue); border-color: var(--blue); }
+.btn-blue:active { background: var(--blue); color: var(--bg); }
+.btn-accent { background: rgba(233,69,96,0.15); color: var(--accent); border-color: var(--accent); }
+.btn-accent:active { background: var(--accent); color: #fff; }
+
+/* PROGRESS */
+.progress-section { padding: 12px 14px 0; }
+.progress-label { font-size: 15px; color: var(--text-dim); margin-bottom: 6px; display: flex; justify-content: space-between; }
+.progress-bar-bg { background: var(--slot-empty); border: 1px solid var(--border); height: 16px; border-radius: 2px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--green), #2a9d8f); transition: width 0.4s ease; position: relative; }
+.progress-bar-fill::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent, transparent 4px, rgba(255,255,255,0.1) 4px, rgba(255,255,255,0.1) 5px); }
+
+/* STATS */
+.stats-row { display: flex; gap: 8px; overflow-x: auto; padding: 12px 14px; scrollbar-width: none; }
+.stats-row::-webkit-scrollbar { display: none; }
+.stat-card { background: var(--card); border: 1px solid var(--border); padding: 10px 14px; border-radius: 2px; flex-shrink: 0; min-width: 80px; text-align: center; }
+.stat-num { font-family: 'Press Start 2P', monospace; font-size: 14px; display: block; margin-bottom: 4px; }
+.stat-label { font-size: 14px; color: var(--text-dim); }
+
+/* SORT MAP */
+.sort-map-section { padding: 0 14px 12px; }
+.sort-map-title { font-family: 'Press Start 2P', monospace; font-size: 7px; color: var(--text-dim); margin-bottom: 8px; letter-spacing: 1px; }
+.sort-map-grid { display: grid; grid-template-columns: repeat(13, 1fr); gap: 3px; }
+.sort-map-cell {
+  aspect-ratio: 1;
+  border-radius: 2px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 6px;
+  border: 1px solid transparent;
+  transition: all 0.15s;
+  position: relative;
+}
+.sort-map-cell:active { transform: scale(0.9); }
+.sort-map-cell.state-full { background: #1a4a2e; border-color: var(--green); color: var(--green); }
+.sort-map-cell.state-partial { background: #2a3a10; border-color: #8bc34a; color: #8bc34a; }
+.sort-map-cell.state-overflow { background: #0a1e3a; border-color: var(--blue); color: var(--blue); }
+.sort-map-cell.state-random { background: #1e0a3a; border-color: var(--purple); color: var(--purple); }
+.sort-map-cell.state-empty { background: #0a0f1a; border-color: var(--border); color: var(--text-dim); }
+.sort-map-cell.highlighted { border-color: var(--accent) !important; box-shadow: 0 0 6px var(--accent); }
+
+/* FLOOR TABS */
+.floor-tabs { display: flex; border-bottom: 1px solid var(--border); margin: 0 14px 14px; }
+.floor-tab { flex: 1; font-family: 'VT323', monospace; font-size: 16px; padding: 8px; text-align: center; cursor: pointer; color: var(--text-dim); border-bottom: 2px solid transparent; transition: all 0.15s; background: none; border-top: none; border-left: none; border-right: none; }
+.floor-tab.active { color: var(--green); border-bottom-color: var(--green); }
+
+/* GROUP CARDS */
+.groups-container { padding: 0 14px; display: flex; flex-direction: column; gap: 12px; }
+.group-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+.group-card.highlighted { border-color: var(--accent); box-shadow: 0 0 12px rgba(233,69,96,0.3); }
+.group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: rgba(0,0,0,0.2);
+  cursor: pointer;
+  user-select: none;
+}
+.group-badge {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  color: var(--accent);
+  background: rgba(233,69,96,0.15);
+  border: 1px solid var(--accent);
+  padding: 3px 6px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.group-title-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-family: 'VT323', monospace;
+  font-size: 20px;
+  outline: none;
+  cursor: pointer;
+  min-width: 0;
+}
+.group-title-input:focus { cursor: text; border-bottom: 1px solid var(--green); }
+.group-count-badge {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  padding: 3px 6px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.count-full { color: var(--green); background: rgba(78,204,163,0.1); border: 1px solid var(--green); }
+.count-partial { color: var(--yellow); background: rgba(245,166,35,0.1); border: 1px solid var(--yellow); }
+.count-empty { color: var(--text-dim); background: rgba(107,127,146,0.1); border: 1px solid var(--border); }
+.collapse-icon { color: var(--text-dim); font-size: 14px; flex-shrink: 0; transition: transform 0.2s; }
+.collapsed .collapse-icon { transform: rotate(-90deg); }
+
+.group-actions { display: flex; gap: 6px; padding: 6px 12px; border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.1); }
+.group-action-btn { font-family: 'VT323', monospace; font-size: 15px; padding: 4px 10px; border: 1px solid var(--border); background: transparent; color: var(--text-dim); cursor: pointer; border-radius: 2px; }
+.group-action-btn:active { background: var(--border); color: var(--text); }
+.group-action-btn.danger { color: var(--accent); border-color: rgba(233,69,96,0.4); }
+.group-action-btn.danger:active { background: var(--accent); color: #fff; }
+
+.slots-list { }
+.slot-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-bottom: 1px solid rgba(30,58,95,0.5);
+  transition: background 0.15s;
+  min-height: 52px;
+}
+.slot-row:last-child { border-bottom: none; }
+.slot-row.slot-empty { background: rgba(10,21,32,0.5); opacity: 0.6; }
+.slot-row.slot-overflow { background: rgba(10,30,48,0.6); }
+.slot-row.slot-random { background: rgba(26,10,46,0.6); }
+.slot-row.search-match { background: rgba(233,69,96,0.08); }
+
+.slot-img-box {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+.slot-img-box.empty-slot { border-style: dashed; opacity: 0.4; font-size: 18px; color: var(--text-dim); }
+.slot-img-box img { width: 32px; height: 32px; image-rendering: pixelated; object-fit: contain; }
+.slot-img-box .emoji-fallback { font-size: 20px; line-height: 1; }
+
+.slot-text-area { flex: 1; min-width: 0; }
+.slot-text {
+  font-family: 'VT323', monospace;
+  font-size: 17px;
+  color: var(--text);
+  line-height: 1.3;
+  word-break: break-word;
+}
+.slot-text.empty-text { color: var(--text-dim); font-style: italic; }
+.slot-text.overflow-text { color: var(--blue); }
+.slot-text.random-text { color: var(--purple); }
+.slot-text .highlight { background: rgba(233,69,96,0.3); color: var(--accent); border-radius: 1px; }
+.slot-rep { font-size: 13px; color: var(--text-dim); margin-top: 1px; }
+
+.slot-inline-input {
+  width: 100%;
+  background: var(--slot-empty);
+  border: 1px solid var(--green);
+  color: var(--text);
+  font-family: 'VT323', monospace;
+  font-size: 17px;
+  padding: 4px 8px;
+  outline: none;
+  border-radius: 2px;
+}
+
+.slot-btns { display: flex; gap: 4px; flex-shrink: 0; }
+.slot-btn { font-size: 16px; padding: 4px 8px; border: 1px solid var(--border); background: transparent; color: var(--text-dim); cursor: pointer; border-radius: 2px; line-height: 1; }
+.slot-btn:active { background: var(--border); }
+.slot-btn.del-btn { color: var(--accent); border-color: rgba(233,69,96,0.3); }
+.slot-btn.del-btn:active { background: var(--accent); color: #fff; }
+
+.group-footer { padding: 8px 12px; background: rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: space-between; }
+.footer-dots { display: flex; gap: 4px; }
+.footer-dot { width: 10px; height: 10px; border-radius: 1px; }
+.dot-filled { background: var(--green); }
+.dot-empty { background: var(--border); }
+.dot-overflow { background: var(--blue); }
+.dot-random { background: var(--purple); }
+.footer-info { font-size: 14px; color: var(--text-dim); }
+
+.add-slot-btn { width: 100%; padding: 8px; background: transparent; border: none; border-top: 1px dashed var(--border); color: var(--text-dim); font-family: 'VT323', monospace; font-size: 16px; cursor: pointer; text-align: center; transition: all 0.15s; }
+.add-slot-btn:active { background: rgba(78,204,163,0.05); color: var(--green); }
+
+/* MODALS */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal-sheet {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px 16px 32px;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.modal-overlay.open .modal-sheet { transform: translateY(0); }
+.modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 16px; }
+.modal-title { font-family: 'Press Start 2P', monospace; font-size: 9px; color: var(--accent); margin-bottom: 16px; letter-spacing: 1px; }
+.modal-input, .modal-textarea {
+  width: 100%;
+  background: var(--slot-empty);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'VT323', monospace;
+  font-size: 18px;
+  padding: 10px 12px;
+  outline: none;
+  border-radius: 2px;
+  margin-bottom: 10px;
+}
+.modal-input:focus, .modal-textarea:focus { border-color: var(--green); }
+.modal-textarea { height: 140px; resize: none; }
+.modal-hint { font-size: 14px; color: var(--text-dim); margin-bottom: 12px; }
+.modal-btns { display: flex; gap: 8px; }
+.modal-btns .btn { flex: 1; padding: 10px; font-size: 17px; text-align: center; }
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--card);
+  border: 1px solid var(--green);
+  color: var(--green);
+  font-family: 'VT323', monospace;
+  font-size: 18px;
+  padding: 10px 20px;
+  border-radius: 2px;
+  z-index: 300;
+  transition: transform 0.3s;
+  white-space: nowrap;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* INSTALL BANNER */
+.install-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--card);
+  border-top: 2px solid var(--green);
+  padding: 12px 16px;
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transform: translateY(100%);
+  transition: transform 0.3s;
+  max-width: 600px;
+  margin: 0 auto;
+}
+.install-banner.show { transform: translateY(0); }
+.install-banner-text { flex: 1; font-size: 16px; color: var(--text); }
+.install-banner-close { font-size: 20px; background: none; border: none; color: var(--text-dim); cursor: pointer; padding: 4px; }
+
+/* HIDDEN */
+.hidden { display: none !important; }
+.collapsed .slots-list, .collapsed .group-footer, .collapsed .add-slot-btn, .collapsed .group-actions { display: none !important; }
+
+/* NO RESULTS */
+.no-results { text-align: center; padding: 40px 20px; color: var(--text-dim); font-size: 20px; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <div class="header-title">TOZ CRAFT</div>
+    <div class="header-sub">⛏ STORAGE SYSTEM</div>
+    <div class="header-pills" id="headerPills"></div>
+  </div>
+
+  <div class="toolbar">
+    <input class="search-input" id="searchInput" placeholder="🔍 Search items or groups..." type="text">
+    <div class="filter-row" id="filterRow">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="filled">Filled</button>
+      <button class="filter-btn" data-filter="empty">Empty</button>
+      <button class="filter-btn" data-filter="overflow">Overflow</button>
+      <button class="filter-btn" data-filter="random">Random</button>
+      <button class="filter-btn" data-filter="collapse">⊟ Collapse</button>
+      <button class="filter-btn" data-filter="expand">⊞ Expand</button>
+    </div>
+    <div class="toolbar-actions">
+      <button class="btn btn-green" id="addGroupBtn">+ New Group</button>
+      <button class="btn btn-blue" id="installBtn">📲 Install</button>
+    </div>
+  </div>
+
+  <div class="progress-section">
+    <div class="progress-label">
+      <span id="progressLabel">Loading...</span>
+      <span id="progressPct">0%</span>
+    </div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill" style="width:0%"></div></div>
+  </div>
+
+  <div class="stats-row" id="statsRow"></div>
+
+  <div class="sort-map-section">
+    <div class="sort-map-title">SORT MAP — TAP TO JUMP</div>
+    <div class="sort-map-grid" id="sortMapGrid"></div>
+  </div>
+
+  <div class="floor-tabs" id="floorTabs">
+    <button class="floor-tab active" data-floor="all">All</button>
+    <button class="floor-tab" data-floor="1">Floor 1 (G1–13)</button>
+    <button class="floor-tab" data-floor="2">Floor 2 (G14–26)</button>
+  </div>
+
+  <div class="groups-container" id="groupsContainer"></div>
+</div>
+
+<!-- Add Group Modal -->
+<div class="modal-overlay" id="addGroupModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">NEW GROUP</div>
+    <input class="modal-input" id="newGroupName" placeholder="Group name...">
+    <div class="modal-hint">Enter slots (one per line):</div>
+    <textarea class="modal-textarea" id="newGroupSlots" placeholder="Coal, Charcoal&#10;Iron Ingot&#10;..."></textarea>
+    <div class="modal-btns">
+      <button class="btn btn-accent" id="cancelAddGroup">Cancel</button>
+      <button class="btn btn-green" id="confirmAddGroup">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">DELETE GROUP?</div>
+    <div style="font-size:18px; color:var(--text); margin-bottom:16px;" id="deleteModalMsg"></div>
+    <div class="modal-btns">
+      <button class="btn btn-green" id="cancelDelete">Cancel</button>
+      <button class="btn btn-accent" id="confirmDelete">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- iOS Install Modal -->
+<div class="modal-overlay" id="iosModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">INSTALL ON IOS</div>
+    <div style="font-size:18px; color:var(--text); line-height:1.6;">
+      1. Tap the <strong style="color:var(--blue)">Share</strong> button in Safari<br>
+      2. Scroll down and tap <strong style="color:var(--green)">"Add to Home Screen"</strong><br>
+      3. Tap <strong style="color:var(--green)">"Add"</strong> to confirm<br><br>
+      <span style="color:var(--text-dim); font-size:15px;">App will work offline after install!</span>
+    </div>
+    <div class="modal-btns" style="margin-top:16px;">
+      <button class="btn btn-green" id="closeIosModal">Got it!</button>
+    </div>
+  </div>
+</div>
+
+<!-- Install Banner (Android) -->
+<div class="install-banner" id="installBanner">
+  <div class="install-banner-text">📲 Install TOZ CRAFT for offline use!</div>
+  <button class="btn btn-green" id="installBannerBtn">Install</button>
+  <button class="install-banner-close" id="closeBanner">✕</button>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ==================== DEFAULT DATA ====================
+const DEFAULT_GROUPS = [
+  { name: "Ores & Minerals", slots: [
+    { text: "Coal, Charcoal, Block of Coal", rep: "Coal" },
+    { text: "Copper Ingot, Block of Copper", rep: "Copper Ingot" },
+    { text: "Iron Ingot, Block of Iron", rep: "Iron Ingot" },
+    { text: "Gold Ingot, Gold Nugget, Block of Gold", rep: "Gold Ingot" },
+    { text: "Lapis Lazuli, Block of Lapis Lazuli", rep: "Lapis Lazuli" },
+    { text: "Emerald, Block of Emerald", rep: "Emerald" },
+    { text: "Diamond, Block of Diamond", rep: "Diamond" },
+    { text: "Amethyst Shard, Block of Amethyst", rep: "Amethyst Shard" },
+  ]},
+  { name: "Stone & Deepslate", slots: [
+    { text: "Cobblestone", rep: "Cobblestone" },
+    { text: "Stone", rep: "Stone" },
+    { text: "Smooth Stone", rep: "Smooth Stone" },
+    { text: "Stone Bricks, Cracked Stone Bricks, Chiseled Stone Bricks", rep: "Stone Bricks" },
+    { text: "Calcite", rep: "Calcite" },
+    { text: "Deepslate, Cobbled Deepslate", rep: "Deepslate" },
+    { text: "Polished Deepslate, Deepslate Bricks, Cracked Deepslate Bricks, Deepslate Tiles, Cracked Deepslate Tiles, Chiseled Deepslate, Reinforced Deepslate", rep: "Polished Deepslate" },
+    { text: "Stone variants Overflow (Slabs, Stairs, Walls)", rep: "Stone Slab" },
+  ]},
+  { name: "Decorative Stone", slots: [
+    { text: "Tuff, Polished Tuff, Tuff Bricks, Chiseled Tuff", rep: "Tuff" },
+    { text: "Granite, Polished Granite", rep: "Granite" },
+    { text: "Diorite, Polished Diorite", rep: "Diorite" },
+    { text: "Andesite, Polished Andesite", rep: "Andesite" },
+    { text: "Granite/Diorite/Andesite variants (Slabs, Stairs, Walls)", rep: "Granite" },
+    { text: "Clay, Clay Block", rep: "Clay" },
+    { text: "Gravel", rep: "Gravel" },
+    { text: "Moss Block", rep: "Moss Block" },
+  ]},
+  { name: "Dirt, Soil & Ice", slots: [
+    { text: "Grass Block", rep: "Grass Block" },
+    { text: "Dirt, Coarse Dirt, Rooted Dirt, Podzol", rep: "Dirt" },
+    { text: "Mud, Mud Bricks, Packed Mud", rep: "Mud" },
+    { text: "Moss Block", rep: "Moss Block" },
+    { text: "Mycelium", rep: "Mycelium" },
+    { text: "Powder Snow", rep: "Powder Snow" },
+    { text: "Snowball, Snow Block", rep: "Snowball" },
+    { text: "Ice, Packed Ice, Blue Ice", rep: "Ice" },
+  ]},
+  { name: "Sand, Sandstone & Prismarine", slots: [
+    { text: "Sand, Red Sand", rep: "Sand" },
+    { text: "Sandstone, Red Sandstone", rep: "Sandstone" },
+    { text: "Smooth Sandstone, Smooth Red Sandstone", rep: "Smooth Sandstone" },
+    { text: "Cut Sandstone, Cut Red Sandstone, Chiseled Sandstone, Chiseled Red Sandstone", rep: "Chiseled Sandstone" },
+    { text: "Sandstone variants (Slabs, Stairs, Walls)", rep: "Sandstone Slab" },
+    { text: "Prismarine", rep: "Prismarine" },
+    { text: "Prismarine Bricks", rep: "Prismarine Bricks" },
+    { text: "Dark Prismarine", rep: "Dark Prismarine" },
+  ]},
+  { name: "Ocean & Sea", slots: [
+    { text: "Prismarine Crystals", rep: "Prismarine Crystals" },
+    { text: "Prismarine Shard", rep: "Prismarine Shard" },
+    { text: "Ink Sac, Glowing Ink Sac", rep: "Ink Sac" },
+    { text: "Kelp, Dried Kelp, Dried Kelp Block", rep: "Kelp" },
+    { text: "Seagrass, Sea Pickle", rep: "Seagrass" },
+    { text: "Sponge, Wet Sponge", rep: "Sponge" },
+    { text: "Sea Lantern", rep: "Sea Lantern" },
+    { text: "Coral Block, Dead Coral Block, Coral Fan, Dead Coral Fan (All types)", rep: "Tube Coral Block" },
+  ]},
+  { name: "Logs & Planks", slots: [
+    { text: "Oak Log, Oak Planks", rep: "Oak Log" },
+    { text: "Spruce Log, Spruce Planks", rep: "Spruce Log" },
+    { text: "Birch Log, Birch Planks", rep: "Birch Log" },
+    { text: "Dark Oak Log, Dark Oak Planks", rep: "Dark Oak Log" },
+    { text: "Jungle Log, Jungle Planks", rep: "Jungle Log" },
+    { text: "Acacia Log, Acacia Planks", rep: "Acacia Log" },
+    { text: "Cherry Log, Cherry Planks", rep: "Cherry Log" },
+    { text: "Pale Oak Log, Pale Oak Planks, Bamboo Planks", rep: "Pale Oak Log" },
+  ]},
+  { name: "Mangrove, Bamboo & Wood Overflow", slots: [
+    { text: "Mangrove Leaves, Mangrove Propagule", rep: "Mangrove Propagule" },
+    { text: "Mangrove Log, Mangrove Planks", rep: "Mangrove Log" },
+    { text: "Bamboo, Bamboo Planks", rep: "Bamboo" },
+    { text: "(Empty Slot)", rep: "" },
+    { text: "(Empty Slot)", rep: "" },
+    { text: "(Empty Slot)", rep: "" },
+    { text: "Stick", rep: "Stick" },
+    { text: "Wood overflow (Wooden Slabs, Wooden Stairs, Wooden Doors, Wooden Trapdoors, Fence, Fence Gate, Wooden Pressure Plate, Wooden Button, Boat, Chest Boat, Sign, Hanging Sign, Ladder)", rep: "Oak Door" },
+  ]},
+  { name: "Leaves & Saplings", slots: [
+    { text: "Oak Leaves, Oak Sapling", rep: "Oak Sapling" },
+    { text: "Spruce Leaves, Spruce Sapling", rep: "Spruce Sapling" },
+    { text: "Birch Leaves, Birch Sapling", rep: "Birch Sapling" },
+    { text: "Dark Oak Leaves, Dark Oak Sapling", rep: "Dark Oak Sapling" },
+    { text: "Jungle Leaves, Jungle Sapling", rep: "Jungle Sapling" },
+    { text: "Acacia Leaves, Acacia Sapling", rep: "Acacia Sapling" },
+    { text: "Cherry Leaves, Cherry Sapling", rep: "Cherry Sapling" },
+    { text: "Pale Oak Leaves, Pale Oak Sapling", rep: "Pale Oak Sapling" },
+  ]},
+  { name: "Crops & Farming", slots: [
+    { text: "Seeds, Wheat, Hay Bale", rep: "Wheat" },
+    { text: "Pumpkin, Carved Pumpkin, Pumpkin Seeds", rep: "Pumpkin" },
+    { text: "Melon, Melon Slice, Melon Seeds", rep: "Melon" },
+    { text: "Sweet Berries, Beetroot, Beetroot Seeds", rep: "Beetroot" },
+    { text: "Glow Berries, Cocoa Beans", rep: "Cocoa Beans" },
+    { text: "Sugar Cane, Sugar", rep: "Sugar Cane" },
+    { text: "Bamboo", rep: "Bamboo" },
+    { text: "Seeds Overflow", rep: "Wheat Seeds" },
+  ]},
+  { name: "Nether Blocks", slots: [
+    { text: "Netherrack, Nether Wart Block, Warped Wart Block", rep: "Netherrack" },
+    { text: "Nether Bricks, Cracked Nether Bricks, Chiseled Nether Bricks, Red Nether Bricks", rep: "Nether Bricks" },
+    { text: "Magma Block, Soul Sand, Soul Soil", rep: "Magma Block" },
+    { text: "Blackstone, Gilded Blackstone, Polished Blackstone, Chiseled Polished Blackstone", rep: "Blackstone" },
+    { text: "Polished Blackstone Bricks, Cracked Polished Blackstone Bricks", rep: "Polished Blackstone Bricks" },
+    { text: "Basalt, Smooth Basalt, Polished Basalt", rep: "Basalt" },
+    { text: "Quartz Block, Smooth Quartz, Chiseled Quartz Block, Quartz Pillar, Quartz Bricks", rep: "Block of Quartz" },
+    { text: "Warped Log, Warped Planks, Crimson Log, Crimson Planks", rep: "Warped Stem" },
+  ]},
+  { name: "Nether Loot", slots: [
+    { text: "Netherite Scrap, Netherite Ingot, Netherite Block, Ancient Debris", rep: "Netherite Ingot" },
+    { text: "Nether Wart", rep: "Nether Wart" },
+    { text: "Quartz", rep: "Nether Quartz" },
+    { text: "Blaze Rod, Blaze Powder", rep: "Blaze Rod" },
+    { text: "Magma Cream", rep: "Magma Cream" },
+    { text: "Ghast Tear", rep: "Ghast Tear" },
+    { text: "Nether Star", rep: "Nether Star" },
+    { text: "Wither Skeleton Skull (all skulls)", rep: "Wither Skeleton Skull" },
+  ]},
+  { name: "End & Obsidian", slots: [
+    { text: "End Stone, End Stone Bricks", rep: "End Stone" },
+    { text: "Obsidian, Crying Obsidian", rep: "Obsidian" },
+    { text: "Purpur Block, Purpur Pillar, Purpur Stairs, Purpur Slab", rep: "Purpur Block" },
+    { text: "Chorus Fruit, Popped Chorus Fruit, Chorus Plant, Chorus Flower", rep: "Chorus Fruit" },
+    { text: "Shulker Shell", rep: "Shulker Shell" },
+    { text: "Ender Pearl, Eye of Ender", rep: "Ender Pearl" },
+    { text: "End Rod", rep: "End Rod" },
+    { text: "Dragon Egg, Dragon Breath, End Crystal", rep: "Dragon Egg" },
+  ]},
+  { name: "Terracotta", slots: [
+    { text: "Terracotta (Plain)", rep: "Terracotta" },
+    { text: "Glazed Terracotta (all colors)", rep: "White Glazed Terracotta" },
+    { text: "Stained Terracotta (white, light gray, gray)", rep: "White Terracotta" },
+    { text: "Stained Terracotta (black, brown)", rep: "Black Terracotta" },
+    { text: "Stained Terracotta (red, orange, yellow)", rep: "Red Terracotta" },
+    { text: "Stained Terracotta (lime, green)", rep: "Green Terracotta" },
+    { text: "Stained Terracotta (cyan, light blue, blue)", rep: "Cyan Terracotta" },
+    { text: "Stained Terracotta (purple, magenta, pink)", rep: "Purple Terracotta" },
+  ]},
+  { name: "Concrete, Dye & Flowers", slots: [
+    { text: "Concrete, Concrete Powder (white, light gray, gray)", rep: "White Concrete" },
+    { text: "Concrete, Concrete Powder (black, brown)", rep: "Black Concrete" },
+    { text: "Concrete, Concrete Powder (red, orange, yellow)", rep: "Red Concrete" },
+    { text: "Concrete, Concrete Powder (lime, green)", rep: "Green Concrete" },
+    { text: "Concrete, Concrete Powder (cyan, light blue, blue)", rep: "Cyan Concrete" },
+    { text: "Concrete, Concrete Powder (purple, magenta, pink)", rep: "Purple Concrete" },
+    { text: "Dye (All colors)", rep: "Red Dye" },
+    { text: "Flowers", rep: "Poppy" },
+  ]},
+  { name: "Wool, Carpet & Bed", slots: [
+    { text: "Wool (white, light gray, gray)", rep: "White Wool" },
+    { text: "Wool (black, brown)", rep: "Black Wool" },
+    { text: "Wool (red, orange, yellow)", rep: "Red Wool" },
+    { text: "Wool (lime, green)", rep: "Green Wool" },
+    { text: "Wool (cyan, light blue, blue)", rep: "Cyan Wool" },
+    { text: "Wool (purple, magenta, pink)", rep: "Purple Wool" },
+    { text: "Carpet (All colors)", rep: "White Carpet" },
+    { text: "Bed (All colors)", rep: "White Bed" },
+  ]},
+  { name: "Glass", slots: [
+    { text: "Glass, Glass Panes (Regular)", rep: "Glass" },
+    { text: "Tinted Glass", rep: "Tinted Glass" },
+    { text: "Glass, Glass Panes (white, light gray, gray)", rep: "White Stained Glass" },
+    { text: "Glass, Glass Panes (black, brown)", rep: "Black Stained Glass" },
+    { text: "Glass, Glass Panes (red, orange, yellow)", rep: "Red Stained Glass" },
+    { text: "Glass, Glass Panes (lime, green)", rep: "Green Stained Glass" },
+    { text: "Glass, Glass Panes (cyan, light blue, blue)", rep: "Cyan Stained Glass" },
+    { text: "Glass, Glass Panes (purple, magenta, pink)", rep: "Purple Stained Glass" },
+  ]},
+  { name: "Light Sources", slots: [
+    { text: "Torch", rep: "Torch" },
+    { text: "Lantern", rep: "Lantern" },
+    { text: "Campfire, Soul Campfire", rep: "Campfire" },
+    { text: "Jack o'Lantern", rep: "Jack o'Lantern" },
+    { text: "Redstone Lamp", rep: "Redstone Lamp" },
+    { text: "Glowstone", rep: "Glowstone" },
+    { text: "Shroomlight", rep: "Shroomlight" },
+    { text: "Froglight (all types)", rep: "Ochre Froglight" },
+  ]},
+  { name: "Redstone", slots: [
+    { text: "Redstone Dust, Redstone Block", rep: "Redstone Dust" },
+    { text: "Piston, Sticky Piston", rep: "Piston" },
+    { text: "Observer, Redstone Torch", rep: "Observer" },
+    { text: "Repeater, Comparator", rep: "Redstone Repeater" },
+    { text: "Hopper, Dispenser, Dropper", rep: "Hopper" },
+    { text: "Daylight Detector, Lightning Rod, Sculk Sensor, Calibrated Sculk Sensor", rep: "Daylight Detector" },
+    { text: "Rail (all types), Minecart (all types)", rep: "Rail" },
+    { text: "Lever, Button (all types), Tripwire Hook, Target Block", rep: "Lever" },
+  ]},
+  { name: "Utility & Valuables", slots: [
+    { text: "Slimeball, Slime Block", rep: "Slimeball" },
+    { text: "Honeycomb, Honey Block, Honey Bottle", rep: "Honeycomb" },
+    { text: "Leather", rep: "Leather" },
+    { text: "(Empty Slot)", rep: "" },
+    { text: "(Empty Slot)", rep: "" },
+    { text: "Item Frame, Glow Item Frame", rep: "Item Frame" },
+    { text: "Totem of Undying", rep: "Totem of Undying" },
+    { text: "Interactable Blocks (Crafting Table, Furnace, Anvil, etc.)", rep: "Crafting Table" },
+  ]},
+  { name: "Mob Drops", slots: [
+    { text: "Paper", rep: "Paper" },
+    { text: "Gunpowder", rep: "Gunpowder" },
+    { text: "Firework Rocket", rep: "Firework Rocket" },
+    { text: "Bone, Bonemeal", rep: "Bone" },
+    { text: "Arrow", rep: "Arrow" },
+    { text: "String", rep: "String" },
+    { text: "Rotten Flesh", rep: "Rotten Flesh" },
+    { text: "Spider Eye, Fermented Spider Eye", rep: "Spider Eye" },
+  ]},
+  { name: "Gear, Tools & Combat", slots: [
+    { text: "Helmet", rep: "Diamond Helmet" },
+    { text: "Chestplate", rep: "Diamond Chestplate" },
+    { text: "Elytra", rep: "Elytra" },
+    { text: "Leggings", rep: "Diamond Leggings" },
+    { text: "Boots", rep: "Diamond Boots" },
+    { text: "Saddle", rep: "Saddle" },
+    { text: "Sword, Axe, Pickaxe, Shovel, Hoe, Fishing Rod, Shears", rep: "Diamond Sword" },
+    { text: "Bow, Crossbow, Trident, Shield", rep: "Bow" },
+  ]},
+  { name: "Food", slots: [
+    { text: "Cooked Salmon, Cooked Cod", rep: "Cooked Salmon" },
+    { text: "Cooked Porkchop, Cooked Mutton, Steak, Cooked Chicken", rep: "Cooked Porkchop" },
+    { text: "Potato, Baked Potato", rep: "Potato" },
+    { text: "Carrot, Golden Carrot", rep: "Carrot" },
+    { text: "Apple, Golden Apple, Enchanted Golden Apple", rep: "Apple" },
+    { text: "Bread", rep: "Bread" },
+    { text: "Cake, Cookie, Pumpkin Pie", rep: "Cake" },
+    { text: "Mushroom, Mushroom Stew", rep: "Mushroom Stew" },
+  ]},
+  { name: "Books, Maps & Misc", slots: [
+    { text: "Books, Bookshelf, Chiseled Bookshelf", rep: "Book" },
+    { text: "Enchanted Book (All types)", rep: "Enchanted Book" },
+    { text: "Maps, Music Discs", rep: "Map" },
+    { text: "Candle (All colors)", rep: "Candle" },
+    { text: "Banners (All colors)", rep: "White Banner" },
+    { text: "Bundle (All types)", rep: "Bundle" },
+    { text: "Potions (All types)", rep: "Potion" },
+    { text: "Armor Trim (All types)", rep: "Netherite Upgrade Smithing Template" },
+  ]},
+  { name: "Empty", slots: Array(8).fill(null).map(() => ({ text: "(Empty Slot)", rep: "" })) },
+  { name: "Misc / Random", slots: Array(8).fill(null).map(() => ({ text: "Random", rep: "Barrier" })) },
+];
+
+// ==================== STATE ====================
+const STORAGE_KEY = 'tozcraft_v3';
+let state = { groups: [] };
+let currentFilter = 'all';
+let currentFloor = 'all';
+let searchQuery = '';
+let deferredPrompt = null;
+let deleteTarget = null;
+let editingSlot = null;
+let lastTap = {};
+
+// ==================== HELPERS ====================
+function uid() { return Math.random().toString(36).slice(2,10); }
+
+function isEmpty(text) { return /^\(empty/i.test(text.trim()); }
+function isRandom(text) { return text.trim().toLowerCase() === 'random'; }
+function isOverflow(text) { return /overflow/i.test(text); }
+
+function slotState(text) {
+  if (isEmpty(text)) return 'empty';
+  if (isRandom(text)) return 'random';
+  if (isOverflow(text)) return 'overflow';
+  return 'filled';
+}
+
+function groupStats(g) {
+  let filled=0, empty=0, overflow=0, random=0;
+  g.slots.forEach(s => {
+    const st = slotState(s.text);
+    if (st==='empty') empty++;
+    else if (st==='random') random++;
+    else if (st==='overflow') overflow++;
+    else filled++;
+  });
+  return { filled, empty, overflow, random, total: g.slots.length };
+}
+
+function imgUrl(rep) {
+  if (!rep) return '';
+  const name = rep.replace(/ /g,'_');
+  return `https://minecraft.wiki/images/Invicon_${name}.png`;
+}
+
+const FALLBACK_EMOJIS = ['⛏️','🪨','🪵','🌿','🌊','🔥','🌌','⚡','⚔️','🍖','📚','💀','🎨','🎲','📦','🌾','🔮','🧪','🪄','💎','🏗️','🎯','🌸','🍄','🎵'];
+function groupEmoji(idx) { return FALLBACK_EMOJIS[idx % FALLBACK_EMOJIS.length]; }
+
+function highlightText(text, query) {
+  if (!query) return escHtml(text);
+  const re = new RegExp(`(${escRe(query)})`, 'gi');
+  return escHtml(text).replace(re, '<span class="highlight">$1</span>');
+}
+function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+
+// ==================== STORAGE ====================
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+}
+function load() {
+  try {
+    const d = localStorage.getItem(STORAGE_KEY);
+    if (d) { state = JSON.parse(d); return; }
+  } catch(e) {}
+  // Init from defaults
+  state.groups = DEFAULT_GROUPS.map((g, i) => ({
+    id: uid(),
+    name: g.name,
+    collapsed: false,
+    slots: g.slots.map(s => ({ id: uid(), text: s.text, rep: s.rep || '' }))
+  }));
+  save();
+}
+
+// ==================== RENDER ====================
+function render() {
+  renderHeader();
+  renderProgress();
+  renderStats();
+  renderSortMap();
+  renderGroups();
+}
+
+function renderHeader() {
+  const pills = document.getElementById('headerPills');
+  const total = state.groups.length;
+  let totalSlots=0, filledSlots=0;
+  state.groups.forEach(g => {
+    g.slots.forEach(s => {
+      totalSlots++;
+      if (slotState(s.text) !== 'empty') filledSlots++;
+    });
+  });
+  const pct = totalSlots ? Math.round(filledSlots/totalSlots*100) : 0;
+  pills.innerHTML = `
+    <span class="pill pill-green">⬛ ${total} Groups</span>
+    <span class="pill pill-accent">📊 ${pct}% Filled</span>
+    <span class="pill pill-blue">VIEW MODE</span>
+  `;
+}
+
+function renderProgress() {
+  let total=0, filled=0;
+  state.groups.forEach(g => g.slots.forEach(s => { total++; if(slotState(s.text)!=='empty') filled++; }));
+  const pct = total ? Math.round(filled/total*100) : 0;
+  document.getElementById('progressLabel').textContent = `${filled} / ${total} slots filled`;
+  document.getElementById('progressPct').textContent = `${pct}%`;
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+function renderStats() {
+  let groups=state.groups.length, filled=0, empty=0, overflow=0, random=0;
+  state.groups.forEach(g => g.slots.forEach(s => {
+    const st = slotState(s.text);
+    if(st==='filled') filled++;
+    else if(st==='empty') empty++;
+    else if(st==='overflow') overflow++;
+    else if(st==='random') random++;
+  }));
+  const items = [
+    { label:'Groups', val:groups, color:'var(--text)' },
+    { label:'Filled', val:filled, color:'var(--green)' },
+    { label:'Empty', val:empty, color:'var(--text-dim)' },
+    { label:'Overflow', val:overflow, color:'var(--blue)' },
+    { label:'Random', val:random, color:'var(--purple)' },
+  ];
+  document.getElementById('statsRow').innerHTML = items.map(i =>
+    `<div class="stat-card"><span class="stat-num" style="color:${i.color}">${i.val}</span><span class="stat-label">${i.label}</span></div>`
+  ).join('');
+}
+
+function renderSortMap() {
+  const grid = document.getElementById('sortMapGrid');
+  grid.innerHTML = state.groups.map((g, i) => {
+    const st = groupStats(g);
+    let stateClass = 'state-empty';
+    if (st.random > 0) stateClass = 'state-random';
+    else if (st.overflow > 0) stateClass = 'state-overflow';
+    else if (st.empty === 0) stateClass = 'state-full';
+    else if (st.filled > 0) stateClass = 'state-partial';
+    return `<div class="sort-map-cell ${stateClass}" data-idx="${i}" onclick="scrollToGroup(${i})">${i+1}</div>`;
+  }).join('');
+}
+
+function renderGroups() {
+  const container = document.getElementById('groupsContainer');
+  const q = searchQuery.toLowerCase();
+
+  let groups = state.groups.map((g, i) => ({ g, i }));
+
+  // Floor filter
+  if (currentFloor === '1') groups = groups.filter(({i}) => i < 13);
+  else if (currentFloor === '2') groups = groups.filter(({i}) => i >= 13);
+
+  // Type filter
+  if (currentFilter === 'filled') groups = groups.filter(({g}) => groupStats(g).filled > 0);
+  else if (currentFilter === 'empty') groups = groups.filter(({g}) => groupStats(g).empty > 0);
+  else if (currentFilter === 'overflow') groups = groups.filter(({g}) => groupStats(g).overflow > 0);
+  else if (currentFilter === 'random') groups = groups.filter(({g}) => groupStats(g).random > 0);
+
+  // Search filter
+  if (q) {
+    groups = groups.filter(({g}) =>
+      g.name.toLowerCase().includes(q) ||
+      g.slots.some(s => s.text.toLowerCase().includes(q))
+    );
+  }
+
+  if (groups.length === 0) {
+    container.innerHTML = '<div class="no-results">No groups found 🔍</div>';
+    return;
+  }
+
+  container.innerHTML = groups.map(({g, i}) => renderGroupCard(g, i, q)).join('');
+
+  // Attach events after render
+  groups.forEach(({g, i}) => attachGroupEvents(g, i));
+}
+
+function renderGroupCard(g, i, q) {
+  const st = groupStats(g);
+  const countClass = st.empty === 0 ? 'count-full' : st.filled > 0 ? 'count-partial' : 'count-empty';
+  const collapsedClass = g.collapsed ? 'collapsed' : '';
+
+  const dots = g.slots.map(s => {
+    const sst = slotState(s.text);
+    const dc = sst==='filled'?'dot-filled':sst==='overflow'?'dot-overflow':sst==='random'?'dot-random':'dot-empty';
+    return `<div class="footer-dot ${dc}"></div>`;
+  }).join('');
+
+  const slotsHtml = g.slots.map((s, si) => renderSlotRow(s, si, i, q, g.id)).join('');
+
+  return `
+  <div class="group-card ${collapsedClass}" id="gc-${g.id}" data-gid="${g.id}">
+    <div class="group-header" data-gid="${g.id}">
+      <div class="group-badge">G${i+1}</div>
+      <input class="group-title-input" value="${escHtml(g.name)}" data-gid="${g.id}" placeholder="Group name...">
+      <div class="group-count-badge ${countClass}">${st.filled}/${st.total}</div>
+      <div class="collapse-icon">▾</div>
+    </div>
+    <div class="group-actions">
+      <button class="group-action-btn" data-action="up" data-gid="${g.id}">↑ Up</button>
+      <button class="group-action-btn" data-action="down" data-gid="${g.id}">↓ Down</button>
+      <button class="group-action-btn danger" data-action="delete" data-gid="${g.id}">🗑 Delete</button>
+    </div>
+    <div class="slots-list" id="sl-${g.id}">
+      ${slotsHtml}
+      <button class="add-slot-btn" data-gid="${g.id}">+ Add Slot</button>
+    </div>
+    <div class="group-footer">
+      <div class="footer-dots">${dots}</div>
+      <div class="footer-info">${st.filled} filled · ${st.empty} empty</div>
+    </div>
+  </div>`;
+}
+
+function renderSlotRow(s, si, gi, q, gid) {
+  const sst = slotState(s.text);
+  const rowClass = sst === 'empty' ? 'slot-empty' : sst === 'overflow' ? 'slot-overflow' : sst === 'random' ? 'slot-random' : '';
+  const searchMatch = q && (s.text.toLowerCase().includes(q)) ? 'search-match' : '';
+  const textClass = sst === 'empty' ? 'empty-text' : sst === 'overflow' ? 'overflow-text' : sst === 'random' ? 'random-text' : '';
+  const displayText = q ? highlightText(s.text, q) : escHtml(s.text);
+  const repDisplay = s.rep ? escHtml(s.rep) : '';
+
+  let imgHtml;
+  if (sst === 'empty') {
+    imgHtml = `<div class="slot-img-box empty-slot">○</div>`;
+  } else {
+    const url = imgUrl(s.rep);
+    const emojiIdx = gi % FALLBACK_EMOJIS.length;
+    imgHtml = `<div class="slot-img-box" id="ib-${s.id}">
+      ${url ? `<img src="${url}" alt="${escHtml(s.rep)}" onerror="imgErr(this,'${escHtml(s.rep)}',${emojiIdx})" loading="lazy">` : `<span class="emoji-fallback">${groupEmoji(emojiIdx)}</span>`}
+    </div>`;
+  }
+
+  return `
+  <div class="slot-row ${rowClass} ${searchMatch}" data-sid="${s.id}" data-gid="${gid}">
+    ${imgHtml}
+    <div class="slot-text-area" data-sid="${s.id}" data-gid="${gid}">
+      <div class="slot-text ${textClass}" id="st-${s.id}">${displayText}</div>
+      ${repDisplay ? `<div class="slot-rep">${repDisplay}</div>` : ''}
+    </div>
+    <div class="slot-btns">
+      <button class="slot-btn" data-action="edit" data-sid="${s.id}" data-gid="${gid}">✏️</button>
+      <button class="slot-btn del-btn" data-action="delslot" data-sid="${s.id}" data-gid="${gid}">✕</button>
+    </div>
+  </div>`;
+}
+
+function imgErr(img, rep, emojiIdx) {
+  // Try with %27 for apostrophes
+  if (rep.includes("'") && !img.src.includes('%27')) {
+    img.src = imgUrl(rep.replace(/'/g, "%27"));
+    return;
+  }
+  img.parentElement.innerHTML = `<span class="emoji-fallback">${groupEmoji(emojiIdx)}</span>`;
+}
+
+// ==================== EVENTS ====================
+function attachGroupEvents(g, i) {
+  const card = document.getElementById(`gc-${g.id}`);
+  if (!card) return;
+
+  // Collapse toggle
+  const header = card.querySelector('.group-header');
+  header.addEventListener('click', (e) => {
+    if (e.target.classList.contains('group-title-input')) return;
+    const grp = state.groups.find(x => x.id === g.id);
+    if (grp) { grp.collapsed = !grp.collapsed; save(); render(); }
+  });
+
+  // Title rename
+  const titleInput = card.querySelector('.group-title-input');
+  titleInput.addEventListener('blur', () => {
+    const grp = state.groups.find(x => x.id === g.id);
+    if (grp) { grp.name = titleInput.value; save(); renderSortMap(); }
+  });
+  titleInput.addEventListener('click', e => e.stopPropagation());
+
+  // Group actions
+  card.querySelectorAll('[data-action]').forEach(btn => {
+    const action = btn.dataset.action;
+    const gid = btn.dataset.gid;
+    const sid = btn.dataset.sid;
+    btn.addEventListener('click', () => {
+      if (action === 'up') moveGroup(gid, -1);
+      else if (action === 'down') moveGroup(gid, 1);
+      else if (action === 'delete') showDeleteModal(gid);
+      else if (action === 'edit') startEditSlot(sid, gid);
+      else if (action === 'delslot') deleteSlot(sid, gid);
+    });
+  });
+
+  // Double tap to edit slot text
+  card.querySelectorAll('.slot-text-area').forEach(el => {
+    el.addEventListener('click', () => {
+      const sid = el.dataset.sid;
+      const gid = el.dataset.gid;
+      const now = Date.now();
+      if (lastTap[sid] && now - lastTap[sid] < 400) {
+        startEditSlot(sid, gid);
+        lastTap[sid] = 0;
+      } else {
+        lastTap[sid] = now;
+      }
+    });
+  });
+
+  // Add slot
+  const addSlotBtn = card.querySelector('.add-slot-btn');
+  if (addSlotBtn) {
+    addSlotBtn.addEventListener('click', () => {
+      const grp = state.groups.find(x => x.id === g.id);
+      if (grp) {
+        grp.slots.push({ id: uid(), text: '(Empty Slot)', rep: '' });
+        save(); render();
+      }
+    });
+  }
+}
+
+function startEditSlot(sid, gid) {
+  const grp = state.groups.find(g => g.id === gid);
+  if (!grp) return;
+  const slot = grp.slots.find(s => s.id === sid);
+  if (!slot) return;
+
+  const textEl = document.getElementById(`st-${sid}`);
+  if (!textEl) return;
+
+  const area = textEl.parentElement;
+  const origHtml = area.innerHTML;
+
+  area.innerHTML = `<input class="slot-inline-input" value="${escHtml(slot.text)}" id="ei-${sid}">`;
+  const inp = document.getElementById(`ei-${sid}`);
+  inp.focus();
+  inp.select();
+
+  const save_ = () => {
+    slot.text = inp.value.trim() || '(Empty Slot)';
+    save();
+    render();
+  };
+  inp.addEventListener('blur', save_);
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { inp.blur(); }
+    if (e.key === 'Escape') { area.innerHTML = origHtml; }
+  });
+}
+
+function deleteSlot(sid, gid) {
+  const grp = state.groups.find(g => g.id === gid);
+  if (!grp) return;
+  grp.slots = grp.slots.filter(s => s.id !== sid);
+  save(); render();
+}
+
+function moveGroup(gid, dir) {
+  const idx = state.groups.findIndex(g => g.id === gid);
+  if (idx < 0) return;
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= state.groups.length) return;
+  const tmp = state.groups[idx];
+  state.groups[idx] = state.groups[newIdx];
+  state.groups[newIdx] = tmp;
+  save(); render();
+}
+
+function showDeleteModal(gid) {
+  const grp = state.groups.find(g => g.id === gid);
+  if (!grp) return;
+  deleteTarget = gid;
+  document.getElementById('deleteModalMsg').textContent = `Delete "${grp.name}"? This cannot be undone.`;
+  openModal('deleteModal');
+}
+
+function scrollToGroup(idx) {
+  const g = state.groups[idx];
+  if (!g) return;
+  const el = document.getElementById(`gc-${g.id}`);
+  if (!el) return;
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  el.classList.add('highlighted');
+  const cell = document.querySelector(`.sort-map-cell[data-idx="${idx}"]`);
+  if (cell) cell.classList.add('highlighted');
+  setTimeout(() => {
+    el.classList.remove('highlighted');
+    if (cell) cell.classList.remove('highlighted');
+  }, 2000);
+}
+
+// ==================== MODALS ====================
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+document.getElementById('addGroupModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('addGroupModal')) closeModal('addGroupModal');
+});
+document.getElementById('deleteModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('deleteModal')) closeModal('deleteModal');
+});
+document.getElementById('iosModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('iosModal')) closeModal('iosModal');
+});
+
+document.getElementById('cancelAddGroup').addEventListener('click', () => closeModal('addGroupModal'));
+document.getElementById('confirmAddGroup').addEventListener('click', () => {
+  const name = document.getElementById('newGroupName').value.trim() || 'New Group';
+  const lines = document.getElementById('newGroupSlots').value.split('\n').filter(l => l.trim());
+  const slots = lines.length > 0
+    ? lines.map(l => ({ id: uid(), text: l.trim(), rep: l.trim().split(',')[0].trim() }))
+    : [{ id: uid(), text: '(Empty Slot)', rep: '' }];
+  state.groups.push({ id: uid(), name, collapsed: false, slots });
+  save(); render();
+  document.getElementById('newGroupName').value = '';
+  document.getElementById('newGroupSlots').value = '';
+  closeModal('addGroupModal');
+  showToast('Group created! ✅');
+});
+
+document.getElementById('cancelDelete').addEventListener('click', () => { deleteTarget=null; closeModal('deleteModal'); });
+document.getElementById('confirmDelete').addEventListener('click', () => {
+  if (deleteTarget) {
+    state.groups = state.groups.filter(g => g.id !== deleteTarget);
+    deleteTarget = null; save(); render();
+    showToast('Group deleted 🗑');
+  }
+  closeModal('deleteModal');
+});
+document.getElementById('closeIosModal').addEventListener('click', () => closeModal('iosModal'));
+
+// ==================== TOOLBAR ====================
+document.getElementById('addGroupBtn').addEventListener('click', () => openModal('addGroupModal'));
+
+document.getElementById('searchInput').addEventListener('input', e => {
+  searchQuery = e.target.value.trim();
+  renderGroups();
+});
+
+document.getElementById('filterRow').addEventListener('click', e => {
+  const btn = e.target.closest('.filter-btn');
+  if (!btn) return;
+  const filter = btn.dataset.filter;
+  if (filter === 'collapse') {
+    state.groups.forEach(g => g.collapsed = true);
+    save(); render(); return;
+  }
+  if (filter === 'expand') {
+    state.groups.forEach(g => g.collapsed = false);
+    save(); render(); return;
+  }
+  currentFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderGroups();
+});
+
+document.getElementById('floorTabs').addEventListener('click', e => {
+  const tab = e.target.closest('.floor-tab');
+  if (!tab) return;
+  currentFloor = tab.dataset.floor;
+  document.querySelectorAll('.floor-tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  renderGroups();
+});
+
+// ==================== TOAST ====================
+function showToast(msg, duration=2500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+// ==================== PWA ====================
+// Manifest blob
+const manifestData = {
+  name: 'TOZ CRAFT Storage System',
+  short_name: 'TOZ CRAFT',
+  display: 'standalone',
+  background_color: '#1a1a2e',
+  theme_color: '#1a1a2e',
+  start_url: '.',
+  description: 'Minecraft automatic storage sorter manager'
+};
+const manifestBlob = new Blob([JSON.stringify(manifestData)], {type:'application/json'});
+const manifestUrl = URL.createObjectURL(manifestBlob);
+const link = document.createElement('link');
+link.rel = 'manifest'; link.href = manifestUrl;
+document.head.appendChild(link);
+
+// Service Worker blob
+const swCode = `
+const CACHE = 'tozcraft-v1';
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(['/'])));
+  self.skipWaiting();
+});
+self.addEventListener('activate', e => { self.clients.claim(); });
+self.addEventListener('fetch', e => {
+  e.respondWith(
+    caches.match(e.request).then(r => r || fetch(e.request).catch(() => new Response('Offline')))
+  );
+});`;
+const swBlob = new Blob([swCode], {type:'application/javascript'});
+const swUrl = URL.createObjectURL(swBlob);
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register(swUrl).catch(()=>{});
+}
+
+// Install prompt
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  setTimeout(() => document.getElementById('installBanner').classList.add('show'), 1500);
+});
+
+window.addEventListener('appinstalled', () => {
+  document.getElementById('installBanner').classList.remove('show');
+  showToast('App installed! 🎉', 3000);
+});
+
+document.getElementById('installBtn').addEventListener('click', () => {
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  if (isIOS) { openModal('iosModal'); return; }
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
+  } else {
+    openModal('iosModal');
+  }
+});
+
+document.getElementById('installBannerBtn').addEventListener('click', () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => {
+      deferredPrompt = null;
+      document.getElementById('installBanner').classList.remove('show');
+    });
+  }
+});
+document.getElementById('closeBanner').addEventListener('click', () => {
+  document.getElementById('installBanner').classList.remove('show');
+});
+
+// ==================== INIT ====================
+window.imgErr = imgErr;
+window.scrollToGroup = scrollToGroup;
+load();
+render();
+</script>
+</body>
+</html>
